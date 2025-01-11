@@ -1,0 +1,87 @@
+# Basic-Static-File-Server
+index.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome</title>
+</head>
+<body>
+    <h1>Welcome to My Static File Server</h1>
+    <p>This is a simple HTML page served by our static file server.</p>
+    <img src="image1.jpg" alt="Image 1" width="300">
+    <img src="image2.jpg" alt="Image 2" width="300">
+    <img src="image3.jpg" alt="Image 3" width="300">
+</body>
+</html>
+
+404.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 Not Found</title>
+</head>
+<body>
+    <h1>404 Not Found</h1>
+    <p>The page you are looking for does not exist.</p>
+</body>
+</html>
+
+Node.js
+
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+
+const server = http.createServer((req, res) => {
+    let filePath = '.' + req.url;
+    if (filePath == './') {
+        filePath = './index.html';
+    }
+    const extname = String(path.extname(filePath)).toLowerCase();
+    const mimeTypes = {
+        '.html': 'text/html',
+        '.js': 'text/javascript',
+        '.css': 'text/css',
+        '.json': 'application/json',
+        '.png': 'image/png',
+        '.jpg': 'image/jpg',
+        '.gif': 'image/gif',
+        '.wav': 'audio/wav',
+        '.mp4': 'video/mp4',
+        '.woff': 'application/font-woff',
+        '.ttf': 'application/font-ttf',
+        '.eot': 'application/vnd.ms-fontobject',
+        '.otf': 'application/font-otf',
+        '.svg': 'application/image/svg+xml'
+    };
+    const contentType = mimeTypes[extname] || 'application/octet-stream';
+    fs.readFile(filePath, (error, content) => {
+        if (error) {
+            if (error.code == 'ENOENT') {
+                fs.readFile('./404.html', (err, content) => {
+                    res.writeHead(404, { 'Content-Type': 'text/html' });
+                    res.end(content, 'utf-8');
+                });
+            } else {
+                res.writeHead(500);
+                res.end(`Sorry, check with the site admin for error: ${error.code} ..\n`);
+                res.end();
+            }
+        } else {
+            res.writeHead(200, { 'Content-Type': contentType });
+            res.end(content, 'utf-8');
+        }
+    });
+});
+
+
+server.listen(3000, () => {
+    console.log('Server running at http://127.0.0.1:3000/');
+});
+
